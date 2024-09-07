@@ -23,3 +23,6 @@ dependencies = [
     "pytz>=2024.1,<2025"
 ]
 
+[project.urls]
+"Homepage" = "https://github.com/bitswan-space/bs-monitoring"
+
