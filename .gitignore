@@ -1,0 +1,14 @@
+__pycache__
+/*.yaml
+.env
+*.sqlite
+main.py
+crontab
+Dockerfile
+configs
+.vscode
+.ruff_cache
+.pytest_cache
+dist
+configs
+.gitlab-ci.yml

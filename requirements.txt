@@ -1,0 +1,8 @@
+dacite
+elasticsearch
+requests
+pytz
+pyyaml
+cerberus
+python-dotenv
+psycopg2
