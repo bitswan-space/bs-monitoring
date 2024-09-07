@@ -5,10 +5,10 @@ __pycache__
 main.py
 crontab
 Dockerfile
-configs
+/configs/
 .vscode
 .ruff_cache
 .pytest_cache
 dist
-configs
 .gitlab-ci.yml
+*.egg-info
