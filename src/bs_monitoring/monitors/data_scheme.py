@@ -52,5 +52,5 @@ class DataSchemeMonitor(Monitor):
             invalid_items = list(filter(lambda x: not self.validator_.validate(x), v))
             if len(invalid_items) > 0:
                 raise DataSchemeError(
-                    f"Data scheme error {self.validator_.errors} for {k}: {invalid_items}"
+                    f"Data scheme error {self.validator_.errors} for {k}, total invalid items: {len(invalid_items)}"
                 )

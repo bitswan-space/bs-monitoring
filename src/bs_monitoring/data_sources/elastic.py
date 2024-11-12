@@ -77,10 +77,23 @@ class ElasticDataSource(DataSource):
             Dict[str, List[Dict]]: A dictionary containing the consumed messages for each index.
         """
         events = {}
-        for topic in self.indices:
-            resp = self.client_.search(index=topic, body=self.query_)
+        for index in self.indices:
+            all_hits = []
+            resp = self.client_.search(
+                index=index, body=self.query_, scroll="5m", size=1000
+            )
 
-            hits = list(map(lambda x: x["_source"], resp["hits"]["hits"]))
-            events[topic] = hits
+            scroll_id = resp["_scroll_id"]
+            hits = resp["hits"]["hits"]
+
+            all_hits.extend(hit["_source"] for hit in hits)
+
+            while len(hits) > 0:
+                resp = self.client_.scroll(scroll_id=scroll_id, scroll="5m")
+                scroll_id = resp["_scroll_id"]
+                hits = resp["hits"]["hits"]
+                all_hits.extend(hit["_source"] for hit in hits)
+
+            events[index] = all_hits
 
         return events

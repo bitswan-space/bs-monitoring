@@ -63,8 +63,6 @@ def alert(
                 context = {
                     "class": self.__class__.__name__,
                     "method": func.__name__,
-                    "args": args,
-                    "kwargs": kwargs,
                     "error": str(e),
                 }
                 context = json.dumps(context)

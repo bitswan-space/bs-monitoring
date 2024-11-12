@@ -36,8 +36,9 @@ class Monitor(ABC):
         self.alert_service = alert_service
         self.connection = DatabaseContext.get_connection(db_name) if db_name else None
 
-        for k, v in asdict(config).items():
-            setattr(self, k, v)
+        if config:
+            for k, v in asdict(config).items():
+                setattr(self, k, v)
 
     @abstractmethod
     def process(self, data: dict[str, Any]) -> None:
