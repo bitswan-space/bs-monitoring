@@ -41,11 +41,11 @@ class Monitor(ABC):
                 setattr(self, k, v)
 
     @abstractmethod
-    def process(self, data: dict[str, Any]) -> None:
-        """Method to process the data and send alerts if necessary.
-
+    async def process(self, data: dict[str, list[dict[str, Any]]]) -> None:
+        """Process the data from the data source.
+        
         Args:
-            data (Dict[str, Any]): The data to process.
+            data: Dictionary containing lists of events from different indices
         """
         pass
 

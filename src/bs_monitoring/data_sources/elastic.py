@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from elasticsearch import Elasticsearch
+from elasticsearch import AsyncElasticsearch
 from typing import Any
 from dataclasses import dataclass
 import pytz
@@ -48,10 +48,12 @@ class ElasticDataSource(DataSource):
             if self.basic_auth
             else {"api_key": self.api_key}
         )
-        self.client_ = Elasticsearch(self.url, **auth)
+        self.client_ = AsyncElasticsearch(self.url, **auth)
         self.indices = self.indices
         self.history_length_ = self.history_length
         self.alert_service = alert_service
+
+        self.lookback = timedelta(days=self.history_length_)
 
         self._setup()
 
@@ -70,26 +72,36 @@ class ElasticDataSource(DataSource):
     @alert(
         message="Failed to consume messages from Elasticsearch.",
     )
-    def produce(self) -> dict[str, list[dict[str, Any]]]:
-        """Consumes messages from the Elasticsearch indices.
+    async def produce(self) -> dict[str, list[dict[str, Any]]]:
+        """Consumes messages from Elasticsearch since last check."""
+        end = datetime.now(pytz.utc)
+        start = end - self.lookback
 
-        Returns:
-            Dict[str, List[Dict]]: A dictionary containing the consumed messages for each index.
-        """
+        self.query_ = {
+            "query": {
+                "range": {
+                    "@timestamp": {
+                        "gte": int(start.timestamp() * 1000),
+                        "lte": int(end.timestamp() * 1000),
+                    }
+                }
+            },
+            "sort": [{"@timestamp": {"order": "desc"}}],
+        }
+
         events = {}
         for index in self.indices:
             all_hits = []
-            resp = self.client_.search(
+            resp = await self.client_.search(
                 index=index, body=self.query_, scroll="5m", size=1000
             )
 
             scroll_id = resp["_scroll_id"]
             hits = resp["hits"]["hits"]
-
             all_hits.extend(hit["_source"] for hit in hits)
 
             while len(hits) > 0:
-                resp = self.client_.scroll(scroll_id=scroll_id, scroll="5m")
+                resp = await self.client_.scroll(scroll_id=scroll_id, scroll="5m")
                 scroll_id = resp["_scroll_id"]
                 hits = resp["hits"]["hits"]
                 all_hits.extend(hit["_source"] for hit in hits)
@@ -97,3 +109,7 @@ class ElasticDataSource(DataSource):
             events[index] = all_hits
 
         return events
+
+    async def close(self) -> None:
+        """Clean up Elasticsearch client connection."""
+        await self.client_.close()

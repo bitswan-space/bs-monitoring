@@ -39,7 +39,7 @@ class DataSchemeMonitor(Monitor):
             self.validator_ = Validator(yaml.safe_load(f), allow_unknown=True)
 
     @alert(message="Data scheme error")
-    def process(self, data: dict[str, Any]) -> None:
+    async def process(self, data: dict[str, Any]) -> None:
         """Method to process the data, sends an alert if the data does not match the data scheme.
 
         Args:

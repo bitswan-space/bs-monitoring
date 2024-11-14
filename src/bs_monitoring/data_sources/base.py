@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, AsyncGenerator
+import asyncio
+from datetime import datetime, timedelta
 
 from bs_monitoring.alert_services import AlertService
 from bs_monitoring.common.utils import register_config
@@ -23,16 +25,30 @@ class DataSource(ABC):
     def __init__(self, config: Any) -> None:
         for k, v in asdict(config).items():
             setattr(self, k, v)
+        self.last_run = None
 
     @abstractmethod
-    def produce(
-        self,
-    ) -> dict[str, list[dict[str, Any]]]:
-        """Method to produce data from the data source.
+    async def produce(self) -> dict[str, list[dict[str, Any]]]:
+        """Single production of data from the data source."""
+        pass
 
-        Returns:
-            Dict[str, List[Dict[str, Any]]]: The data produced. The keys are the indices and the values are the messages.
+    async def produce_continuous(self, interval_seconds: float = 86400) -> AsyncGenerator[dict[str, list[dict[str, Any]]], None]:
+        """Continuously produce data at specified intervals using asyncio.
+        
+        Args:
+            interval_seconds (float): Interval between productions in seconds. Defaults to 86400 (1 day).
         """
+        while True:
+            current_time = datetime.now()
+            
+            if self.last_run is None or (current_time - self.last_run).total_seconds() >= interval_seconds:
+                self.last_run = current_time
+                yield await self.produce()
+            
+            await asyncio.sleep(interval_seconds)
+
+    async def close(self) -> None:
+        """Clean up any resources."""
         pass
 
 

@@ -34,7 +34,7 @@ class DataQuantityMonitor(Monitor):
         super().__init__(alert_service, db_name)
 
     @alert(message="Data quantity error")
-    def process(self, data: dict[str, Any]) -> None:
+    async def process(self, data: dict[str, Any]) -> None:
         """Method to process the data, sends an alert if the data date is a weekday and the data quantity is 0.
 
         Args:

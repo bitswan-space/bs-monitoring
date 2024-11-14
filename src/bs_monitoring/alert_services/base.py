@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import functools
 import json
 from typing import Any, Callable
+import asyncio
 from bs_monitoring.common.utils import MonitoringServiceError, register_config
 from dataclasses import dataclass, asdict
 
@@ -55,7 +56,26 @@ def alert(
 
     def decorator(func: Callable):
         @functools.wraps(func)
-        def inner(self, *args, **kwargs):
+        async def async_wrapper(self, *args, **kwargs):
+            try:
+                return await func(self, *args, **kwargs)
+            except MonitoringServiceError as e:
+                alert_service: AlertService = self.alert_service
+                context = {
+                    "class": self.__class__.__name__,
+                    "method": func.__name__,
+                    "error": str(e),
+                }
+                context = json.dumps(context)
+                alert_service.send_alert(
+                    message=message,
+                    description=context,
+                )
+            except Exception as e:
+                raise e
+
+        @functools.wraps(func)
+        def sync_wrapper(self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
             except MonitoringServiceError as e:
@@ -73,7 +93,9 @@ def alert(
             except Exception as e:
                 raise e
 
-        return inner
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        return sync_wrapper
 
     return decorator
 
