@@ -8,6 +8,7 @@ from bs_monitoring.alert_services.base import (
 )
 
 from bs_monitoring.alert_services.opsgenie import OpsgenieAlertService
+from bs_monitoring.alert_services.discord import DiscordAlertService
 
 __all__ = [
     "AlertService",

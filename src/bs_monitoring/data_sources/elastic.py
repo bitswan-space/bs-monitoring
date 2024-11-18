@@ -55,20 +55,6 @@ class ElasticDataSource(DataSource):
 
         self.lookback = timedelta(days=self.history_length_)
 
-        self._setup()
-
-    def _setup(self) -> None:
-        """Set up the query for the Elasticsearch indices."""
-        end = datetime.now(pytz.utc)
-        start = end - timedelta(days=self.history_length_)
-
-        end_ms = int(end.timestamp() * 1000)
-        start_ms = int(start.timestamp() * 1000)
-        self.query_ = {
-            "query": {"range": {"@timestamp": {"gte": start_ms, "lte": end_ms}}},
-            "sort": [{"@timestamp": {"order": "desc"}}],
-        }
-
     @alert(
         message="Failed to consume messages from Elasticsearch.",
     )

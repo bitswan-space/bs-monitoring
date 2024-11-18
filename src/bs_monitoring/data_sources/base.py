@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from typing import Any, AsyncGenerator
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from bs_monitoring.alert_services import AlertService
 from bs_monitoring.common.utils import register_config
@@ -32,7 +32,7 @@ class DataSource(ABC):
         """Single production of data from the data source."""
         pass
 
-    async def produce_continuous(self, interval_seconds: float = 86400) -> AsyncGenerator[dict[str, list[dict[str, Any]]], None]:
+    async def produce_continuous(self, interval_seconds: int = 86400) -> AsyncGenerator[dict[str, list[dict[str, Any]]], None]:
         """Continuously produce data at specified intervals using asyncio.
         
         Args:

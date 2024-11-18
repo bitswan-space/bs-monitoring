@@ -9,11 +9,12 @@ from contextlib import AsyncExitStack
 
 
 class Pipeline:
-    def __init__(self, source: DataSource, monitors: list[Monitor]):
+    def __init__(self, source: DataSource, monitors: list[Monitor], interval: int):
         self.source = source
         self.monitors = monitors
         self._exit_stack = AsyncExitStack()
         self._shutdown_event = asyncio.Event()
+        self._interval = interval
 
     async def shutdown(self, signal=None):
         """Cleanup tasks tied to the service's shutdown."""
@@ -26,7 +27,6 @@ class Pipeline:
             if hasattr(monitor, "close"):
                 await monitor.close()
 
-        
         tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         for task in tasks:
             task.cancel()
@@ -40,12 +40,12 @@ class Pipeline:
         source = create_data_source(config.DataSource, alert_service)
         monitors = create_monitors(config.Monitors, alert_service)
 
-        return Pipeline(source, monitors)
+        return Pipeline(source, monitors, config.Interval)
 
     async def _run(self):
         """Run the pipeline continuously using asyncio."""
         try:
-            async for data in self.source.produce_continuous():
+            async for data in self.source.produce_continuous(self._interval):
                 if self._shutdown_event.is_set():
                     break
                 await asyncio.gather(

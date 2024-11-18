@@ -27,6 +27,7 @@ class RootConfig:
     DataSource: DataSourceConfig
     AlertService: AlertServiceConfig
     Monitors: list[MonitorConfig]
+    Interval: int = 86400
     Databases: list[DatabaseConfig] = field(default_factory=list)
 
 
@@ -55,11 +56,6 @@ def read_yaml_config(file_path: str) -> RootConfig:
         elif isinstance(value, list):
             return [replace_env_vars(v) for v in value]
         return value
-
-    # import_submodules("monitors")
-    # import_submodules("alert_services")
-    # import_submodules("data_sources")
-    # import_submodules("databases")
 
     with open(file_path, "r") as file:
         try:
