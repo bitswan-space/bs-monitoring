@@ -79,7 +79,7 @@ class ElasticDataSource(DataSource):
         for index in self.indices:
             all_hits = []
             resp = await self.client_.search(
-                index=index, body=self.query_, scroll="5m", size=1000
+                index=index, body=self.query_, scroll="5m"
             )
 
             scroll_id = resp["_scroll_id"]
