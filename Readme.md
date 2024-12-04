@@ -65,33 +65,79 @@ class MyDataSource(DataSource):
     api_key = ConfigField(str)
     
     async def produce(self) -> dict[str, list[dict]]:
+        # Your data fetching logic here
         return {"source": [{"data": "value"}]}
 ```
 
 ### Monitors
-Validate your data by inheriting from `Monitor` and implementing validation logic with the `@alert` decorator for automatic error notifications.
+Validate your data. Create custom monitors by inheriting from `Monitor`:
+```python
+@register_monitor
+class MyMonitor(Monitor):
+    threshold = ConfigField(float, default=0.9)
+    
+    @alert(message="Data validation failed")
+    async def process(self, data: dict) -> None:
+        # Your validation logic here
+        if not self._validate(data):
+            raise MonitoringServiceError("Validation failed")
+```
 
 ### Alert Services
-Handle notifications when issues are detected by implementing custom alert services that inherit from `AlertService`.
+Handle notifications when issues are detected:
+```python
+@register_alert_service
+class MyAlertService(AlertService):
+    webhook_url = ConfigField(str)
+    
+    def send_alert(self, message: str, description: str = None):
+        # Your alerting logic here
+        pass
+```
 
 ## Configuration
 
-Use YAML files to configure your monitoring service and environment variables with `${VAR_NAME}` syntax:
+Use YAML files to configure your monitoring service:
 ```yaml
+# Define databases (optional)
+Databases:
+  - type: "Postgres"
+    name: "metrics"
+    config:
+      host: "${DB_HOST}"
+      port: 5432
+
+# Configure your data source
 DataSource:
   type: "MySource"
   config:
     api_key: "${API_KEY}"
 
+# Set up alerting
 AlertService:
   type: "Discord"
   config:
     webhook_url: "${WEBHOOK_URL}"
 
+# Define monitors
 Monitors:
   - type: "DataQuantity"
+  - type: "MyMonitor"
+    db_name: "metrics"
     config:
       threshold: 0.95
+
+# Set monitoring interval (seconds)
+Interval: 3600
+```
+
+## Environment Variables
+
+Use environment variables in your config with `${VAR_NAME}` syntax:
+```yaml
+DataSource:
+  config:
+    api_key: "${API_KEY}"
 ```
 
 ## Best Practices
@@ -101,5 +147,3 @@ Monitors:
 3. **Configuration**: Use `ConfigField` for all configurable parameters
 4. **Alerts**: Use the `@alert` decorator for automatic error notifications
 5. **Database**: Only request database access when needed
-
-For detailed documentation, visit our [Documentation](link-to-your-documentation).
