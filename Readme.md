@@ -1,75 +1,151 @@
-# Bitswan Data Monitoring and Analysis Library
+# Bitswan Data Monitoring Library
 
 ## Overview
 
-This library provides easy abstraction over defining monitoring services for periodical data sources. It is designed to be used in a microservice architecture where each service is responsible for monitoring a specific data source. The library provides a simple interface to define the pipeline of data collection, validation and alerting. The library is designed to be extensible and can be easily integrated with any data source, enabling the user to define custom data collection and validation logic, which then can be configured using `yaml` files, which are the main configuration object for this library.
+Bitswan is a Python library for building data monitoring pipelines. It enables you to:
+- Monitor periodic data sources
+- Validate data quality
+- Send alerts when issues are detected
+- Configure everything through YAML files
 
-## Components
+## Quick Start
 
-Firstly, the library uses `yaml` files to define the structure of the whole service. The configuration file defines all the components of the service. The format of the file is as follows:
-
-```yaml
-Databases:
-  - type: "Postgres"
-    name: "test"
-    config:
-      key: value
-
-AlertService:
-  type: "type"
-  config:
-    key: value
-
-DataSource:
-  type: "type"
-  config:
-    key: value
-
-Monitors:
-  - type: "type"
-    db_name: "test"
-    config:
-      key: value
-  - type: "type"
-    config:
-      key: value
+1. Install the library:
+```bash
+pip install bitswan-monitoring
 ```
 
-The values provided in the configuration file are used to construct the components of the service. All the components define configurable attributes via class attributes of type `ConfigFiel(type, default=default_value)`, such as `api_key = ConfigField(str | None, default=None)` which defines an attribute `api_key` of type `str` with default value `None`. Then, in the configuration file, the attribute can be set as `api_key: "value"` inside the `config` subpart. The configuration file also supports the use of environment variables, which are then expanded.
-You can use environment variables in the configuration file by using the following syntax: `${ENV_VAR_NAME}`. The library will then expand the environment variable to its value.
+2. Create a config file (`config.yaml`):
+```yaml
+DataSource:
+  type: "Elastic"
+  config:
+    url: "http://elasticsearch:9200"
+    indices: ["my-index"]
 
-Main component of this library is `Pipeline`. It's an object encapsulating all of the parts: data collection, validation, alerting, database, etc. The pipeline is always constructed from a configuration file, which is a `yaml` file. The configuration file defines the pipeline and its components. The configuration file is then used to construct the components of the pipeline.
-The pipeline is then the controlling component of the whole runtime. Whole service could be defined as simply as:
+AlertService:
+  type: "Discord"
+  config:
+    webhook_url: "${DISCORD_WEBHOOK_URL}"
 
+Monitors:
+  - type: "DataQuantity"
+    config:
+      threshold: 100
+```
+
+3. Create your monitoring service:
 ```python
-from dotenv import load_dotenv
 from bs_monitoring.pipeline import Pipeline
 from bs_monitoring.common.configs.base import read_config
 
-
 def main():
-    load_dotenv()
-    arguments = read_config()
-
-    pipeline = Pipeline.construct(arguments)
+    config = read_config()
+    pipeline = Pipeline.construct(config)
     pipeline.run()
-
 
 if __name__ == "__main__":
     main()
 ```
 
-This code will read the configuration file from the path provided in the environment variable `CONFIG_PATH`, construct the pipeline and run it. The pipeline will then collect the data from the history, validate it and send alerts if necessary.
+## Core Components
 
-## Data Collection
+### Pipeline
+The main orchestrator that connects all components:
+- Manages data collection
+- Runs monitors
+- Handles alerts
+- Controls the monitoring lifecycle
 
-All data collection is done by the `DataSource` object. The `DataSource` object is responsible for collecting the data from the data source. The data source can be anything, such as an API, a database, a file, etc. The `DataSource` object is reponsible for collecting the data from the history, which is then passed to all of the `Monitor` objects. You can write your own `DataSource` object by inheriting from the `DataSource` class and implementing the `produce` method, which should return the data from the history of type `dict[str, list[dict[str, Any]]]`.
-If you want to have a configurable attribute, you can specify it in the `DataSource` class as a class attribute of type `ConfigField`. The attribute can then be set in the configuration file under the `config` subpart. To then make the new `DataSource` object available in the configuration file, you need to register it in the `DataSource` registry. You can do this by decorating the class with `register_data_source` decorator.
+### Data Sources
+Fetch data from various sources. Create custom sources by inheriting from `DataSource`:
+```python
+@register_data_source
+class MyDataSource(DataSource):
+    api_key = ConfigField(str)
+    
+    async def produce(self) -> dict[str, list[dict]]:
+        # Your data fetching logic here
+        return {"source": [{"data": "value"}]}
+```
 
-## Alerting
+### Monitors
+Validate your data. Create custom monitors by inheriting from `Monitor`:
+```python
+@register_monitor
+class MyMonitor(Monitor):
+    threshold = ConfigField(float, default=0.9)
+    
+    @alert(message="Data validation failed")
+    async def process(self, data: dict) -> None:
+        # Your validation logic here
+        if not self._validate(data):
+            raise MonitoringServiceError("Validation failed")
+```
 
-Whole point of this library is to provide easy alerting in-case something goes wrong, that's where `AlertService` component comes in. The `AlertService` object is responsible for sending alerts. The alerts can be sent via email, slack, etc. To define your own `AlertService` inhertit from the `AlertService` class and implement the `send_alert` method. In the public API, there is also `alert` decorator available, which can be used to decorate the `Monitor` methods. The decorator will then send an alert if the decorated method raises an exception. For configuration, same rules apply as for the `DataSource` object, but registering the class can be done via `register_alert_service` decorator.
+### Alert Services
+Handle notifications when issues are detected:
+```python
+@register_alert_service
+class MyAlertService(AlertService):
+    webhook_url = ConfigField(str)
+    
+    def send_alert(self, message: str, description: str = None):
+        # Your alerting logic here
+        pass
+```
 
-## Data Monitoring
+## Configuration
 
+Use YAML files to configure your monitoring service:
+```yaml
+# Define databases (optional)
+Databases:
+  - type: "Postgres"
+    name: "metrics"
+    config:
+      host: "${DB_HOST}"
+      port: 5432
 
+# Configure your data source
+DataSource:
+  type: "MySource"
+  config:
+    api_key: "${API_KEY}"
+
+# Set up alerting
+AlertService:
+  type: "Discord"
+  config:
+    webhook_url: "${WEBHOOK_URL}"
+
+# Define monitors
+Monitors:
+  - type: "DataQuantity"
+  - type: "MyMonitor"
+    db_name: "metrics"
+    config:
+      threshold: 0.95
+
+# Set monitoring interval (seconds)
+Interval: 3600
+```
+
+## Environment Variables
+
+Use environment variables in your config with `${VAR_NAME}` syntax:
+```yaml
+DataSource:
+  config:
+    api_key: "${API_KEY}"
+```
+
+## Best Practices
+
+1. **Error Handling**: Use `MonitoringServiceError` for alertable errors
+2. **Async Support**: Implement async methods for better performance
+3. **Configuration**: Use `ConfigField` for all configurable parameters
+4. **Alerts**: Use the `@alert` decorator for automatic error notifications
+5. **Database**: Only request database access when needed
+
+For detailed documentation, visit our [Documentation](link-to-your-documentation).
