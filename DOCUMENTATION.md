@@ -1,50 +1,62 @@
+---
+title: Bitswan Data Monitoring Library
+description: Documentation for building and configuring data monitoring pipelines
+---
+
 # Bitswan Data Monitoring Library Documentation
 
-## Overview
+## Table of Contents
+- [Overview](#overview)
+- [Core Components](#core-components)
+- [Getting Started](#getting-started)
+- [Creating Custom Components](#creating-custom-components)
+- [Configuration Reference](#configuration-reference)
+- [Best Practices](#best-practices)
+- [Lifecycle Management](#lifecycle-management)
+
+## Overview <a name="overview"></a>
 Bitswan is a Python library for building data monitoring pipelines. It provides a flexible framework to monitor data sources, validate data quality, and send alerts when issues are detected. The library is built around composable components that can be easily extended and configured using YAML files.
 
-## Core Components
+## Core Components <a name="core-components"></a>
 
-### 1. Pipeline
+### Pipeline Component
 The Pipeline is the main orchestrator that connects all components. It manages:
 - Data collection from sources
 - Data validation through monitors
 - Alert dispatching
 - Lifecycle management
 
-### 2. Data Sources
+### Data Sources Component
 Data sources are responsible for fetching data. The library comes with:
 - ElasticSearch data source
 - Extensible base class for custom sources
 
-### 3. Monitors
+### Monitors Component
 Monitors validate data quality. Built-in monitors include:
 - Data Quantity Monitor (checks for data presence)
 - Data Schema Monitor (validates data structure)
 
-### 4. Alert Services
+### Alert Services Component
 Alert services handle notifications. Supported services:
 - Discord (webhook-based)
 - OpsGenie
 
-### 5. Databases
+### Databases Component
 Optional database connections for monitors:
 - PostgreSQL
 - SQLite
 
-## Getting Started
+## Getting Started <a name="getting-started"></a>
 
 ### Basic Setup
 
 1. Install the package:
-
-```bash
+```language-bash
 pip install bitswan-monitoring
 ```
 
 2. Create a configuration file (`config.yaml`):
-
-```yaml
+```language-yaml
 DataSource:
   type: "Elastic"
   config:
@@ -67,8 +79,7 @@ Interval: 3600  # Run every hour
 ```
 
 3. Create a simple monitoring service:
-
-```python
+```language-python
 from bs_monitoring.pipeline import Pipeline
 from bs_monitoring.common.configs.base import read_config
 
@@ -82,16 +93,15 @@ if __name__ == "__main__":
 ```
 
 4. Run the service:
-
-```bash
+```language-bash
 python service.py --config config.yaml
 ```
 
-## Creating Custom Components
+## Creating Custom Components <a name="creating-custom-components"></a>
 
-### Custom Data Source
+### Custom Data Source Implementation
 
-```python
+```language-python
 from bs_monitoring.data_sources import DataSource, register_data_source
 from bs_monitoring.common.utils import ConfigField
 
@@ -113,9 +123,9 @@ class MyDataSource(DataSource):
         return data
 ```
 
-### Custom Monitor
+### Custom Monitor Implementation
 
-```python
+```language-python
 from bs_monitoring.monitors import Monitor, register_monitor
 from bs_monitoring.alert_services import alert
 from bs_monitoring.common.utils import ConfigField
@@ -135,9 +145,9 @@ class MyMonitor(Monitor):
                 raise MonitoringServiceError(f"Validation failed for {source}")
 ```
 
-### Custom Alert Service
+### Custom Alert Service Implementation
 
-```python
+```language-python
 from bs_monitoring.alert_services import AlertService, register_alert_service
 from bs_monitoring.common.utils import ConfigField
 
@@ -153,21 +163,19 @@ class MyAlertService(AlertService):
         pass
 ```
 
-## Configuration Reference
+## Configuration Reference <a name="configuration-reference"></a>
 
-### Environment Variables
+### Environment Variables Configuration
 Use environment variables in your config:
-
-```yaml
+```language-yaml
 DataSource:
   type: "MySource"
   config:
     api_key: "${API_KEY}"
 ```
 
-### Database Configuration
-
-```yaml
+### Database Configuration Example
+```language-yaml
 Databases:
   - type: "Postgres"
     name: "metrics_db"
@@ -179,9 +187,8 @@ Databases:
       database: "metrics"
 ```
 
-### Monitor with Database
-
-```yaml
+### Monitor with Database Configuration
+```language-yaml
 Monitors:
   - type: "MyMonitor"
     db_name: "metrics_db"  # References database name
@@ -189,25 +196,43 @@ Monitors:
       threshold: 0.95
 ```
 
-## Best Practices
+## Best Practices <a name="best-practices"></a>
 
-1. **Error Handling**: Use `MonitoringServiceError` for expected errors that should trigger alerts.
+### 1. Error Handling
+- Use `MonitoringServiceError` for expected errors that should trigger alerts
+- Implement proper error context in custom components
 
-2. **Async Support**: All data processing methods should be async-compatible.
+### 2. Async Support
+- All data processing methods should be async-compatible
+- Use `async/await` patterns consistently
 
-3. **Configuration**: Use `ConfigField` for all configurable parameters.
+### 3. Configuration Management
+- Use `ConfigField` for all configurable parameters
+- Implement proper type hints and defaults
 
-4. **Alert Decorators**: Use the `@alert` decorator to automatically handle error notifications.
+### 4. Alert Implementation
+- Use the `@alert` decorator to automatically handle error notifications
+- Provide meaningful alert messages and contexts
 
-5. **Database Usage**: Only request database access if your monitor needs it.
+### 5. Database Usage
+- Only request database access if your monitor needs it
+- Implement proper connection management
 
-## Lifecycle Management
+## Lifecycle Management <a name="lifecycle-management"></a>
 
+### Pipeline Lifecycle Features
 The pipeline handles:
 - Graceful shutdown on SIGTERM/SIGINT
 - Resource cleanup
 - Continuous execution with configurable intervals
 - Component initialization and dependency injection
 
-This library provides a robust foundation for building data monitoring services while remaining flexible enough to accommodate custom requirements through its extensible component system. By following the best practices outlined above, you can create reliable and scalable monitoring pipelines for your data sources.
+### Component Lifecycle
+Each component (DataSource, Monitor, AlertService) follows a consistent lifecycle:
+1. Configuration parsing
+2. Initialization
+3. Runtime execution
+4. Cleanup
+
+This library provides a robust foundation for building data monitoring services while remaining flexible enough to accommodate custom requirements through its extensible component system.
 
