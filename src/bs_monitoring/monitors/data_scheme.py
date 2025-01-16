@@ -38,19 +38,25 @@ class DataSchemeMonitor(Monitor):
         with open(self.file, "r") as f:
             self.validator_ = Validator(yaml.safe_load(f), allow_unknown=True)
 
-    @alert(message="Data scheme error")
     async def process(self, data: dict[str, Any]) -> None:
-        """Method to process the data, sends an alert if the data does not match the data scheme.
+        """Process the data.
 
         Args:
-            data (Dict[str, Any]): The data to process.
-
-        Raises:
-            DataSchemeError: Raised if the data does not match the data scheme.
+            data (dict[str, Any]): The data to process.
         """
         for k, v in data.items():
-            invalid_items = list(filter(lambda x: not self.validator_.validate(x), v))
-            if len(invalid_items) > 0:
-                raise DataSchemeError(
-                    f"Data scheme error {self.validator_.errors} for {k}, total invalid items: {len(invalid_items)}"
-                )
+            await self._process(k, v)
+
+    @alert(message="Data scheme error")
+    async def _process(self, key: str, value: list[Any]) -> None:
+        """Process the data for a given key.
+
+        Args:
+            key (str): The key of the data to process.
+            value (list[Any]): The data to process.
+        """
+        invalid_items = list(filter(lambda x: not self.validator_.validate(x), value))
+        if len(invalid_items) > 0:
+            raise DataSchemeError(
+                f"Data scheme error {self.validator_.errors} for {key}, total invalid items: {len(invalid_items)}"
+            )

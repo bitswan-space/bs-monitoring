@@ -33,20 +33,30 @@ class DataQuantityMonitor(Monitor):
         """
         super().__init__(alert_service, db_name)
 
-    @alert(message="Data quantity error")
     async def process(self, data: dict[str, Any]) -> None:
-        """Method to process the data, sends an alert if the data date is a weekday and the data quantity is 0.
+        """Process the data.
 
         Args:
-            data (Dict[str, Any]): The data to process.
-
-        Raises:
-            DataQuantityError: Raised if the data quantity is 0 and is weekday.
+            data (dict[str, Any]): The data to process.
         """
         start_date = datetime.now(pytz.utc) - timedelta(days=1)
         if start_date.weekday() >= 5:
             return
 
         for k, v in data.items():
-            if len(v) == 0:
-                raise DataQuantityError(f"Data quantity for {k} is 0")
+            await self._process(k, v)
+
+    @alert(message="Data quantity error")
+    async def _process(self, key: str, value: list[Any]) -> None:
+        """Process the data for a given key.
+
+        Args:
+            key (str): The key of the data to process.
+            value (list[Any]): The data to process.
+
+        Raises:
+            DataQuantityError: Raised if the data quantity is 0.
+        """
+        if len(value) == 0:
+            raise DataQuantityError(f"Data quantity for {key} is 0")
+
