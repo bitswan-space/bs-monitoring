@@ -34,14 +34,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: yarn
-          cache-dependency-path: docs/yarn.lock
+          cache: 'npm'
+          cache-dependency-path: './docs/package-lock.json'
       - name: Install dependencies
         working-directory: docs
-        run: yarn install --frozen-lockfile --non-interactive
-      - name: yarn build
+        run: npm ci
+      - name: Build
         working-directory: docs
-        run: yarn build
+        run: npm run build
       - name: Upload artifact
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
