@@ -38,5 +38,5 @@ async def process(self, data: dict[str, list[dict[str, Any]]]) -> None:
 
 ## Supported Alert Services
 
-- [Discord](/docs/alertservices/discord)
-- [OpsGenie](/docs/alertservices/opsgenie)
+- [Discord](/alertservices/discord)
+- [OpsGenie](/alertservices/opsgenie)

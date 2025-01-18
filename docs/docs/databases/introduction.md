@@ -8,5 +8,5 @@ BS Monitoring supports various databases for storing monitoring data. This secti
 
 ## Supported Databases
 
-- [Postgres](/docs/databases/postgres)
-- [SQLite](/docs/databases/sqlite)
+- [Postgres](/databases/postgres)
+- [SQLite](/databases/sqlite)

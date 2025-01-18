@@ -43,5 +43,9 @@ This will create a data source that will be used to produce data from the `Custo
 
 Important detail is the call to `super().__init__(config)`, this is how the data source is initialized and the configuration is passed to the data source. 
 
-The `alert` decorator is used to define an alert that will be sent if the data source fails to produce data. This is useful for debugging and for alerting the user if the data source is not working as expected. More about this can be found in the [AlertService](/docs/overview/alert_services) section.
+The `alert` decorator is used to define an alert that will be sent if the data source fails to produce data. This is useful for debugging and for alerting the user if the data source is not working as expected. More about this can be found in the [AlertService](/alertservices/introduction) section.
+
+## Supported Data Sources
+
+- [Elastic](/datasources/elastic)
 

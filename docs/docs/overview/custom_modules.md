@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Custom Modules
 
-As showcased in the [Configuration](/docs/overview/configuration) section, you can configure a `CustomMonitor` that uses a `Sqlite` database. This is a custom monitor that you can implement yourself, you can find more information about the `Monitor` interface in the [Monitors](/docs/monitors/introduction) section.
+As showcased in the [Configuration](/overview/configuration) section, you can configure a `CustomMonitor` that uses a `Sqlite` database. This is a custom monitor that you can implement yourself, you can find more information about the `Monitor` interface in the [Monitors](/monitors/introduction) section.
 
 You can also implement your own `DataSource`, `AlertService`, and `Database` modules. This page will showcase how to implement your own modules and how to register them in the library. 
 

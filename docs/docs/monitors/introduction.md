@@ -44,5 +44,5 @@ The `process` method is the main method that will be called by the pipeline. It 
 
 ## Supported Monitors
 
-- [DataQuantity](/docs/monitors/data_quantity)
-- [DataScheme](/docs/monitors/data_scheme)
+- [DataQuantity](/monitors/data_quantity)
+- [DataScheme](/monitors/data_scheme)
