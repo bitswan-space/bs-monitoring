@@ -3,7 +3,7 @@ const config = {
   tagline: 'Bs Monitoring',
   favicon: 'img/logo.svg',
   url: 'https://bitswan-space.github.io',
-  baseUrl: '/bsmonitoring/',
+  baseUrl: '/bs-monitoring/',
   organizationName: 'bitswan-space',
   projectName: 'bsmonitoring',
   onBrokenLinks: 'throw',
