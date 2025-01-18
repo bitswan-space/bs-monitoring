@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Elastic Data Source
 
-The `Elastic` data source is a data source that consumes messages from Elasticsearch. It is implemented as a custom data source, more information about how to implement a custom data source can be found in the [Custom Modules](/docs/overview/custom_modules) section.
+The `Elastic` data source is a data source that consumes messages from Elasticsearch. It is implemented as a custom data source, more information about how to implement a custom data source can be found in the [Custom Modules](/overview/custom_modules) section.
 
 ```python
 @register_datasource

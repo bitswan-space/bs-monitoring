@@ -65,7 +65,7 @@ Monitors:
 ```
 
 In this example, we have a `DataSource` that is configured to use Elasticsearch, with a history length of 2. We have two `Monitor`s, one is a `DataQuantity` monitor and the other is a `DataScheme` monitor.
-We also have a `Custom` monitor that is configured to use a `Sqlite` database with the name `custom_monitor_db`. `Custom` is a custom monitor that you can implement yourself, you can find more information about how to implement a custom monitor in the [Custom Modules](/custom_modules) section.
+We also have a `Custom` monitor that is configured to use a `Sqlite` database with the name `custom_monitor_db`. `Custom` is a custom monitor that you can implement yourself, you can find more information about how to implement a custom monitor in the [Custom Modules](/overview/custom_modules) section.
 
 The `AlertService` is configured to use the `Opsgenie` alert service, with the `api_key` being passed as an environment variable.
 
